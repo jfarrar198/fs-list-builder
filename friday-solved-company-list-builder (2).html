@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Friday Solved — B2B Prospecting Tool</title>
+<style>
+  :root {
+    --pink: #FAD5E5;
+    --pink-dark: #c0567a;
+    --pink-mid: #f0bdd6;
+    --black: #111111;
+    --grey-1: #f7f7f5;
+    --grey-2: #eeeeec;
+    --grey-3: #d8d8d5;
+    --grey-4: #999;
+    --grey-5: #555;
+    --white: #ffffff;
+    --green-bg: #f0faf4;
+    --green-border: #a8e6c0;
+    --green-text: #1a6b3c;
+    --red-bg: #fff5f5;
+    --red-border: #ffaaaa;
+    --red-text: #aa2222;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--grey-1);
+    color: var(--black);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .topbar {
+    background: var(--black);
+    padding: 0 32px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar-logo {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pink);
+  }
+  .topbar-tag {
+    font-size: 11px;
+    color: var(--grey-4);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .hero {
+    background: var(--pink);
+    padding: 40px 32px 36px;
+    border-bottom: 2px solid var(--black);
+  }
+  .hero h1 {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--black);
+    margin-bottom: 10px;
+  }
+  .hero p {
+    font-size: 15px;
+    color: #444;
+    max-width: 560px;
+    line-height: 1.5;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    min-height: calc(100vh - 52px - 120px);
+  }
+
+  /* ── Sidebar filters ── */
+  .sidebar {
+    background: var(--white);
+    border-right: 1.5px solid var(--grey-2);
+    padding: 28px 24px;
+    overflow-y: auto;
+  }
+
+  .sidebar-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--grey-4);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid var(--grey-2);
+  }
+
+  .filter-group {
+    margin-bottom: 22px;
+  }
+
+  .filter-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--grey-5);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .filter-hint {
+    font-size: 11px;
+    color: var(--grey-4);
+    margin-top: 5px;
+    line-height: 1.4;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1.5px solid var(--grey-3);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--black);
+    background: var(--grey-1);
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--pink-dark);
+    background: var(--white);
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+    cursor: pointer;
+  }
+
+  .date-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .postcode-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .pc-tag {
+    background: var(--pink);
+    border: 1.5px solid var(--pink-mid);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--black);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: default;
+  }
+
+  .pc-tag button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--pink-dark);
+    font-size: 13px;
+    line-height: 1;
+    padding: 0;
+    font-weight: 700;
+  }
+
+  .pc-add-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .pc-add-row input {
+    flex: 1;
+    text-transform: uppercase;
+  }
+
+  .btn-add {
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-add:hover { background: #333; }
+
+  .preset-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+
+  .preset-btn {
+    background: var(--grey-2);
+    border: 1.5px solid var(--grey-3);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--grey-5);
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .preset-btn:hover { background: var(--pink); border-color: var(--pink-mid); color: var(--black); }
+
+  /* SIC checkboxes */
+  .sic-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1.5px solid var(--grey-3);
+    border-radius: var(--radius-sm);
+    background: var(--grey-1);
+  }
+
+  .sic-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--grey-2);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .sic-item:last-child { border-bottom: none; }
+  .sic-item:hover { background: var(--pink); }
+  .sic-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    accent-color: var(--pink-dark);
+    border: none;
+  }
+  .sic-item label {
+    font-size: 12px;
+    color: var(--black);
+    cursor: pointer;
+    line-height: 1.3;
+  }
+
+  .sic-controls {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .sic-controls button {
+    background: none;
+    border: 1.5px solid var(--grey-3);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--grey-5);
+    cursor: pointer;
+  }
+  .sic-controls button:hover { border-color: var(--pink-dark); color: var(--pink-dark); }
+
+  .api-key-area {
+    background: var(--grey-1);
+    border: 1.5px solid var(--grey-3);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    margin-bottom: 22px;
+  }
+
+  .api-key-area input {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    border: none;
+    background: transparent;
+    padding: 4px 0;
+    width: 100%;
+  }
+  .api-key-area input:focus { outline: none; }
+
+  .api-key-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--grey-4);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .run-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.15s;
+    margin-top: 4px;
+  }
+  .run-btn:hover:not(:disabled) { background: #2a2a2a; }
+  .run-btn:disabled { background: var(--grey-3); color: var(--grey-4); cursor: not-allowed; }
+
+  /* ── Main panel ── */
+  .main {
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--grey-4);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h2 { font-size: 18px; font-weight: 700; color: var(--grey-5); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; line-height: 1.5; max-width: 360px; }
+
+  /* Progress */
+  .progress-card {
+    background: var(--white);
+    border: 1.5px solid var(--grey-2);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: none;
+  }
+
+  .progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .progress-status { font-size: 14px; font-weight: 700; color: var(--black); }
+  .progress-count { font-size: 13px; color: var(--grey-4); }
+
+  .progress-bar-wrap {
+    background: var(--grey-2);
+    border-radius: 99px;
+    height: 6px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pink), var(--pink-dark));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .log-box {
+    background: var(--black);
+    color: #aaffaa;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .log-box .err { color: #ff8080; }
+  .log-box .warn { color: #ffdd80; }
+  .log-box .ok { color: #80ffaa; }
+  .log-box .info { color: #80ccff; }
+
+  /* Results */
+  .results-card {
+    background: var(--white);
+    border: 1.5px solid var(--grey-2);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: none;
+  }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .results-title { font-size: 18px; font-weight: 800; color: var(--black); }
+
+  .download-btn {
+    background: var(--pink);
+    color: var(--black);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .download-btn:hover { background: var(--pink-mid); }
+
+  .stats-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    background: var(--grey-1);
+    border: 1.5px solid var(--grey-2);
+    border-radius: var(--radius-sm);
+    padding: 14px 20px;
+    min-width: 110px;
+  }
+  .stat .num { font-size: 26px; font-weight: 800; color: var(--black); line-height: 1; }
+  .stat .lbl { font-size: 11px; color: var(--grey-4); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1.5px solid var(--grey-2);
+    border-radius: var(--radius-sm);
+    max-height: 480px;
+    overflow-y: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  thead th {
+    background: var(--black);
+    color: var(--white);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  tbody tr { border-bottom: 1px solid var(--grey-2); transition: background 0.1s; }
+  tbody tr:hover { background: var(--pink); }
+  tbody tr:nth-child(even) { background: var(--grey-1); }
+  tbody tr:nth-child(even):hover { background: var(--pink); }
+
+  tbody td {
+    padding: 9px 14px;
+    color: var(--black);
+    vertical-align: middle;
+    white-space: nowrap;
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  tbody td a {
+    color: var(--pink-dark);
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  tbody td a:hover { text-decoration: underline; }
+
+  .sector-badge {
+    background: var(--pink);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .error-card {
+    background: var(--red-bg);
+    border: 1.5px solid var(--red-border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    color: var(--red-text);
+    font-size: 14px;
+    line-height: 1.5;
+    display: none;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1.5px;
+    background: var(--grey-2);
+    margin: 4px 0 18px;
+  }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { border-right: none; border-bottom: 1.5px solid var(--grey-2); }
+    .hero h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-logo">Friday Solved</span>
+  <span class="topbar-tag">B2B Prospecting Tool</span>
+</div>
+
+<div class="hero">
+  <h1>Company List Builder</h1>
+  <p>Search the full Companies House register. Set your filters, run the search, download your list.</p>
+</div>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- API Key -->
+    <div class="api-key-area">
+      <span class="api-key-label">Your Companies House Access Key</span>
+      <input type="text" id="apikey" placeholder="Paste your key here..." autocomplete="off" />
+    </div>
+
+    <div class="sidebar-title">Filters</div>
+
+    <!-- Location / Postcodes -->
+    <div class="filter-group">
+      <span class="filter-label">Location</span>
+      <div class="preset-row">
+        <button class="preset-btn" onclick="loadPreset('basingstoke')">Basingstoke</button>
+        <button class="preset-btn" onclick="loadPreset('guildford')">Guildford</button>
+        <button class="preset-btn" onclick="loadPreset('manchester')">Manchester</button>
+        <button class="preset-btn" onclick="loadPreset('london')">London</button>
+        <button class="preset-btn" onclick="loadPreset('birmingham')">Birmingham</button>
+        <button class="preset-btn" onclick="loadPreset('bristol')">Bristol</button>
+        <button class="preset-btn" onclick="clearPostcodes()">Clear</button>
+      </div>
+      <div class="postcode-tags" id="pc-tags"></div>
+      <div class="pc-add-row">
+        <input type="text" id="pc-input" placeholder="e.g. RG21" maxlength="4" onkeydown="if(event.key==='Enter')addPostcode()" />
+        <button class="btn-add" onclick="addPostcode()">Add</button>
+      </div>
+      <p class="filter-hint">Pick a city preset or type in any postcode area (e.g. RG21, M1, EC2).</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="filter-group">
+      <span class="filter-label">Company Status</span>
+      <select id="company_status">
+        <option value="active" selected>Active (registered and not dissolved)</option>
+        <option value="">Any status (include all)</option>
+        <option value="dissolved">Dissolved (closed companies)</option>
+        <option value="liquidation">In Liquidation</option>
+        <option value="administration">In Administration</option>
+        <option value="voluntary-arrangement">Voluntary Arrangement</option>
+        <option value="converted-closed">Converted / Closed</option>
+        <option value="insolvency-proceedings">Insolvency Proceedings</option>
+        <option value="open">Open</option>
+        <option value="closed">Closed</option>
+      </select>
+      <p class="filter-hint">Defaults to Active — companies that are still legally registered and haven't been closed down. Note: some active companies may be dormant or not currently trading.</p>
+    </div>
+
+    <!-- Company Type -->
+    <div class="filter-group">
+      <span class="filter-label">Company Type</span>
+      <select id="company_type">
+        <option value="">All structures</option>
+        <option value="ltd">Private Limited Company (Ltd)</option>
+        <option value="plc">Public Limited Company (PLC)</option>
+        <option value="llp">Limited Liability Partnership (LLP)</option>
+        <option value="limited-partnership">Limited Partnership</option>
+        <option value="uk-establishment">UK Establishment (overseas)</option>
+        <option value="scottish-partnership">Scottish Partnership</option>
+        <option value="royal-charter">Royal Charter</option>
+        <option value="investment-company-with-variable-capital">Investment Company</option>
+        <option value="unregistered-company">Unregistered Company</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <!-- Company Subtype -->
+    <div class="filter-group">
+      <span class="filter-label">Company Subtype</span>
+      <select id="company_subtype">
+        <option value="">No special category</option>
+        <option value="community-interest-company">Community Interest Company (CIC)</option>
+        <option value="private-fund-limited-partnership">Private Fund Limited Partnership</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Incorporation dates -->
+    <div class="filter-group">
+      <span class="filter-label">Incorporated Between</span>
+      <div class="date-row">
+        <div><input type="date" id="incorporated_from" /></div>
+        <div><input type="date" id="incorporated_to" /></div>
+      </div>
+      <p class="filter-hint">Use this to target newer startups or long-established businesses. Leave blank for any age.</p>
+    </div>
+
+    <!-- Dissolved dates -->
+    <div class="filter-group">
+      <span class="filter-label">Dissolved Between</span>
+      <div class="date-row">
+        <div><input type="date" id="dissolved_from" /></div>
+        <div><input type="date" id="dissolved_to" /></div>
+      </div>
+      <p class="filter-hint">Only useful if "Is the company currently..." is set to Dissolved.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Name filters -->
+    <div class="filter-group">
+      <span class="filter-label">Company Name Includes</span>
+      <input type="text" id="name_includes" placeholder="e.g. consulting, tech, solutions" />
+      <p class="filter-hint">Only returns companies whose name includes this word.</p>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label">Company Name Excludes</span>
+      <input type="text" id="name_excludes" placeholder="e.g. holdings, dormant" />
+      <p class="filter-hint">Removes companies whose name includes this word.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- SIC Codes -->
+    <div class="filter-group">
+      <span class="filter-label">Sector</span>
+      <div class="sic-controls">
+        <button onclick="toggleAllSic(true)">Select all</button>
+        <button onclick="toggleAllSic(false)">Clear all</button>
+        <button onclick="selectB2BSic()">B2B only</button>
+      </div>
+      <div class="sic-list" id="sic-list"></div>
+      <p class="filter-hint">Leave all unticked to include every sector.</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Max results -->
+    <div class="filter-group">
+      <span class="filter-label">Max Companies Per Postcode</span>
+      <select id="max_per_pc">
+        <option value="100">100 (quick test)</option>
+        <option value="250">250</option>
+        <option value="500" selected>500 (recommended)</option>
+        <option value="2000">2,000 (slower)</option>
+        <option value="9999">All available</option>
+      </select>
+    </div>
+
+    <button class="run-btn" id="run-btn" onclick="startFetch()">Run Search →</button>
+
+  </aside>
+
+  <!-- ── MAIN PANEL ── -->
+  <main class="main">
+
+    <div class="empty-state" id="empty-state">
+      <div class="icon">🔍</div>
+      <h2>Set your filters and run the search</h2>
+      <p>Results will appear here. You can download them as a CSV once the search is complete.</p>
+    </div>
+
+    <div class="progress-card" id="progress-card">
+      <div class="progress-header">
+        <span class="progress-status" id="progress-status">Starting...</span>
+        <span class="progress-count" id="progress-count"></span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+      <div class="log-box" id="log"></div>
+    </div>
+
+    <div class="error-card" id="error-card"></div>
+
+    <div class="results-card" id="results-card">
+      <div class="results-header">
+        <span class="results-title" id="results-title">Results</span>
+        <button class="download-btn" onclick="downloadCSV()">Download CSV →</button>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><div class="num" id="stat-total">0</div><div class="lbl">Companies</div></div>
+        <div class="stat"><div class="num" id="stat-sectors">0</div><div class="lbl">Sectors</div></div>
+        <div class="stat"><div class="num" id="stat-pcs">0</div><div class="lbl">Postcodes</div></div>
+      </div>
+      <div class="table-wrap">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Company Name</th>
+              <th>Type</th>
+              <th>Sector</th>
+              <th>Town</th>
+              <th>Postcode</th>
+              <th>Incorporated</th>
+              <th>Status</th>
+              <th>CH Link</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+
+const PRESETS = {
+  basingstoke: ["RG21","RG22","RG23","RG24","RG25","RG26","RG27","RG28","RG29","GU9","GU10","GU11","GU12","GU13","GU14","GU46","GU47","GU51","GU52","GU21","GU22","GU23","GU24","SO22","SO23","SO24","SO51","SP10","SP11"],
+  guildford:   ["GU1","GU2","GU3","GU4","GU5","GU6","GU7","GU8","GU21","GU22","GU23","GU24","KT1","KT2","KT22","KT24"],
+  manchester:  ["M1","M2","M3","M4","M5","M11","M12","M13","M14","M15","M16","M20","M21","M22","M23","M40","M41","SK1","SK2","SK3","SK4","SK8"],
+  london:      ["EC1","EC2","EC3","EC4","WC1","WC2","W1","SW1","SE1","N1","E1","E2","E14","NW1","NW3"],
+  birmingham:  ["B1","B2","B3","B4","B5","B6","B7","B8","B9","B10","B11","B12","B13","B15","B16","B17","B18","B19","B20"],
+  bristol:     ["BS1","BS2","BS3","BS4","BS5","BS6","BS7","BS8","BS9","BS10","BS11","BS13","BS14","BS15","BS16"]
+};
+
+const ALL_SICS = [
+  ["10","Food Manufacturing"],["11","Beverage Manufacturing"],["13","Textile Manufacturing"],
+  ["14","Apparel Manufacturing"],["16","Wood Products"],["17","Paper Manufacturing"],
+  ["18","Printing & Reproduction"],["20","Chemical Manufacturing"],["21","Pharmaceuticals"],
+  ["22","Rubber & Plastics"],["23","Non-metallic Minerals"],["24","Basic Metal Manufacturing"],
+  ["25","Fabricated Metal Products"],["26","Electronics & Computer Hardware"],
+  ["27","Electrical Equipment"],["28","Machinery & Equipment"],["29","Motor Vehicles"],
+  ["30","Other Transport Equipment"],["31","Furniture Manufacturing"],["32","Other Manufacturing"],
+  ["33","Repair & Maintenance"],["35","Energy / Utilities"],["38","Waste Management"],
+  ["41","Construction of Buildings"],["42","Civil Engineering"],["43","Specialist Construction"],
+  ["45","Motor Trade"],["46","Wholesale Trade (B2B)"],["47","Retail"],
+  ["49","Land Transport & Logistics"],["52","Warehousing & Logistics"],["53","Postal & Courier"],
+  ["55","Accommodation"],["56","Food & Beverage Service"],
+  ["58","Publishing"],["59","Film & TV Production"],["61","Telecommunications"],
+  ["62","IT / Software Development"],["63","Information Services / Data"],
+  ["64","Financial Services"],["65","Insurance"],["66","Financial Auxiliary Services"],
+  ["68","Real Estate"],["69","Legal & Accounting"],["70","Management Consultancy"],
+  ["71","Architecture & Engineering"],["72","Scientific R&D"],
+  ["73","Advertising & Market Research"],["74","Other Professional Services"],
+  ["77","Equipment Rental & Leasing"],["78","Recruitment & Staffing"],
+  ["79","Travel & Events"],["80","Security Services"],["81","Facilities Management"],
+  ["82","Business Support Services"],["85","Education & Training"],["86","Healthcare"],
+  ["87","Residential Care"],["90","Arts & Entertainment"],["93","Sports & Recreation"],
+  ["94","Membership Organisations"],["95","Computer & Equipment Repair"],["96","Personal Services"]
+];
+
+const B2B_SICS = new Set(["46","49","52","53","58","61","62","63","64","65","66","68","69","70","71","72","73","74","77","78","79","80","81","82","85","94","95","20","21","22","23","24","25","26","27","28","29","30","31","32","33","35","38","41","42","43"]);
+
+const SIC_MAP = {};
+ALL_SICS.forEach(([code, name]) => SIC_MAP[code] = name);
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let postcodes = [];
+let allCompanies = {};
+let workingProxyIdx = 0;
+
+const PROXIES = [
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://proxy.cors.sh/${url}`,
+];
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+function buildSicList() {
+  const el = document.getElementById("sic-list");
+  el.innerHTML = ALL_SICS.map(([code, name]) => `
+    <label class="sic-item">
+      <input type="checkbox" class="sic-check" value="${code}" />
+      <span>${name}</span>
+    </label>
+  `).join("");
+}
+
+function loadPreset(name) {
+  postcodes = [...PRESETS[name]];
+  renderTags();
+}
+
+function clearPostcodes() {
+  postcodes = [];
+  renderTags();
+}
+
+function addPostcode() {
+  const input = document.getElementById("pc-input");
+  const val = input.value.trim().toUpperCase().replace(/\s/g,"");
+  if (val && !postcodes.includes(val)) {
+    postcodes.push(val);
+    renderTags();
+  }
+  input.value = "";
+  input.focus();
+}
+
+function removePostcode(pc) {
+  postcodes = postcodes.filter(p => p !== pc);
+  renderTags();
+}
+
+function renderTags() {
+  const el = document.getElementById("pc-tags");
+  el.innerHTML = postcodes.map(pc => `
+    <span class="pc-tag">${pc}<button onclick="removePostcode('${pc}')" title="Remove">×</button></span>
+  `).join("");
+}
+
+function toggleAllSic(checked) {
+  document.querySelectorAll(".sic-check").forEach(c => c.checked = checked);
+}
+
+function selectB2BSic() {
+  document.querySelectorAll(".sic-check").forEach(c => {
+    c.checked = B2B_SICS.has(c.value);
+  });
+}
+
+function getCheckedSics() {
+  return Array.from(document.querySelectorAll(".sic-check:checked")).map(c => c.value);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getSector(sic) {
+  if (!sic) return "Unknown";
+  return SIC_MAP[String(sic).substring(0,2)] || ("SIC " + sic);
+}
+
+function log(msg, type) {
+  const el = document.getElementById("log");
+  const d = document.createElement("div");
+  if (type) d.className = type;
+  d.textContent = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── API ───────────────────────────────────────────────────────────────────────
+function buildApiUrl(apiKey, pc, start) {
+  const base = `https://${apiKey}:@api.company-information.service.gov.uk/advanced-search/companies`;
+  const params = new URLSearchParams();
+  params.set("location", pc);
+  params.set("start_index", start);
+  params.set("size", "100");
+
+  const status = document.getElementById("company_status").value;
+  if (status) params.set("company_status", status);
+
+  const type = document.getElementById("company_type").value;
+  if (type) params.set("company_type", type);
+
+  const subtype = document.getElementById("company_subtype").value;
+  if (subtype) params.set("company_subtype", subtype);
+
+  const incFrom = document.getElementById("incorporated_from").value;
+  if (incFrom) params.set("incorporated_from", incFrom);
+
+  const incTo = document.getElementById("incorporated_to").value;
+  if (incTo) params.set("incorporated_to", incTo);
+
+  const disFrom = document.getElementById("dissolved_from").value;
+  if (disFrom) params.set("dissolved_from", disFrom);
+
+  const disTo = document.getElementById("dissolved_to").value;
+  if (disTo) params.set("dissolved_to", disTo);
+
+  const nameInc = document.getElementById("name_includes").value.trim();
+  if (nameInc) params.set("company_name_includes", nameInc);
+
+  const nameExc = document.getElementById("name_excludes").value.trim();
+  if (nameExc) params.set("company_name_excludes", nameExc);
+
+  const sics = getCheckedSics();
+  sics.forEach(s => params.append("sic_codes", s));
+
+  return `${base}?${params.toString()}`;
+}
+
+async function fetchWithFallback(url) {
+  for (let i = workingProxyIdx; i < PROXIES.length; i++) {
+    try {
+      const proxyUrl = PROXIES[i](url);
+      const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(15000) });
+      if (resp.status === 401) throw new Error("Invalid API key — check your key and try again.");
+      if (resp.status === 429) { await sleep(15000); return fetchWithFallback(url); }
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const text = await resp.text();
+      let data;
+      try {
+        const outer = JSON.parse(text);
+        data = outer.contents ? JSON.parse(outer.contents) : outer;
+      } catch(e) { throw new Error("Bad proxy response"); }
+      workingProxyIdx = i;
+      return data;
+    } catch(err) {
+      if (err.message.includes("Invalid API key")) throw err;
+      if (i === PROXIES.length - 1) throw new Error("All proxies failed — " + err.message);
+      log(`Proxy ${i+1} failed, trying next...`, "warn");
+    }
+  }
+}
+
+async function fetchPostcode(apiKey, pc, maxPerPc) {
+  let start = 0;
+  while (start < maxPerPc) {
+    const url = buildApiUrl(apiKey, pc, start);
+    const data = await fetchWithFallback(url);
+    const items = data.items || [];
+    if (!items.length) break;
+
+    for (const c of items) {
+      const cn = c.company_number;
+      if (!cn || allCompanies[cn]) continue;
+      const sics = c.sic_codes || [];
+      const addr = c.registered_office_address || {};
+      const parts = [addr.address_line_1, addr.address_line_2, addr.locality, addr.region, addr.postal_code].filter(Boolean);
+      allCompanies[cn] = {
+        "Company Name": (c.company_name||"").replace(/\b\w/g, l => l.toUpperCase()),
+        "Company Number": cn,
+        "Status": (c.company_status||"").replace(/\b\w/g, l => l.toUpperCase()),
+        "Company Type": (c.company_type||"").replace(/-/g," ").replace(/\b\w/g, l => l.toUpperCase()),
+        "Incorporated": c.date_of_creation||"",
+        "Sector": getSector(sics[0]),
+        "SIC Code": sics.join(", "),
+        "Town": addr.locality||"",
+        "Postcode": addr.postal_code||"",
+        "Address": parts.join(", "),
+        "Companies House URL": "https://find-and-update.company-information.service.gov.uk/company/"+cn
+      };
+    }
+
+    const total = data.hits || 0;
+    start += items.length;
+    if (start >= total || start >= maxPerPc) break;
+    await sleep(250);
+  }
+}
+
+// ── Main run ──────────────────────────────────────────────────────────────────
+async function startFetch() {
+  const apiKey = document.getElementById("apikey").value.trim();
+  if (!apiKey) { alert("Please enter your Companies House API key."); return; }
+  if (postcodes.length === 0) { alert("Please add at least one postcode area, or select a preset."); return; }
+
+  allCompanies = {};
+  workingProxyIdx = 0;
+  const maxPerPc = parseInt(document.getElementById("max_per_pc").value);
+
+  document.getElementById("run-btn").disabled = true;
+  document.getElementById("empty-state").style.display = "none";
+  document.getElementById("progress-card").style.display = "block";
+  document.getElementById("results-card").style.display = "none";
+  document.getElementById("error-card").style.display = "none";
+  document.getElementById("log").innerHTML = "";
+  document.getElementById("progress-bar").style.width = "0%";
+
+  log(`Starting search across ${postcodes.length} postcode areas...`, "info");
+
+  try {
+    for (let i = 0; i < postcodes.length; i++) {
+      const pc = postcodes[i];
+      document.getElementById("progress-status").textContent = `Fetching ${pc}... (${i+1} of ${postcodes.length})`;
+      document.getElementById("progress-bar").style.width = Math.round((i / postcodes.length) * 100) + "%";
+
+      const before = Object.keys(allCompanies).length;
+      await fetchPostcode(apiKey, pc, maxPerPc);
+      const added = Object.keys(allCompanies).length - before;
+
+      document.getElementById("progress-count").textContent = Object.keys(allCompanies).length.toLocaleString() + " found";
+      log(`${pc} → +${added} (total: ${Object.keys(allCompanies).length.toLocaleString()})`, added > 0 ? "ok" : "");
+    }
+
+    document.getElementById("progress-bar").style.width = "100%";
+    document.getElementById("progress-status").textContent = "Done.";
+    showResults();
+
+  } catch(err) {
+    document.getElementById("error-card").textContent = "Error: " + err.message;
+    document.getElementById("error-card").style.display = "block";
+    log("✗ " + err.message, "err");
+    document.getElementById("progress-status").textContent = "Something went wrong.";
+  }
+
+  document.getElementById("run-btn").disabled = false;
+}
+
+function showResults() {
+  const companies = Object.values(allCompanies);
+  const sectors = new Set(companies.map(c => c.Sector)).size;
+  const pcs = new Set(companies.map(c => (c.Postcode||"").substring(0,4).trim())).size;
+
+  document.getElementById("stat-total").textContent = companies.length.toLocaleString();
+  document.getElementById("stat-sectors").textContent = sectors;
+  document.getElementById("stat-pcs").textContent = pcs;
+  document.getElementById("results-title").textContent = companies.length.toLocaleString() + " companies found";
+
+  const tbody = document.getElementById("results-body");
+  tbody.innerHTML = companies.slice(0, 500).map(c => `
+    <tr>
+      <td title="${c["Company Name"]}">${c["Company Name"]}</td>
+      <td>${c["Company Type"]}</td>
+      <td><span class="sector-badge">${c["Sector"]}</span></td>
+      <td>${c["Town"]}</td>
+      <td>${c["Postcode"]}</td>
+      <td>${c["Incorporated"]}</td>
+      <td>${c["Status"]}</td>
+      <td><a href="${c["Companies House URL"]}" target="_blank">View →</a></td>
+    </tr>
+  `).join("");
+
+  if (companies.length > 500) {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td colspan="8" style="text-align:center;padding:16px;color:var(--grey-4);font-size:12px;">Showing first 500 of ${companies.length.toLocaleString()} — download CSV for the full list</td>`;
+    tbody.appendChild(row);
+  }
+
+  document.getElementById("results-card").style.display = "block";
+}
+
+function downloadCSV() {
+  const companies = Object.values(allCompanies);
+  if (!companies.length) return;
+  const cols = ["Company Name","Company Number","Status","Company Type","Incorporated","Sector","SIC Code","Town","Postcode","Address","Companies House URL"];
+  const esc = v => '"' + String(v||"").replace(/"/g,'""') + '"';
+  const rows = [cols.map(esc).join(","), ...companies.map(c => cols.map(col => esc(c[col])).join(","))];
+  const blob = new Blob([rows.join("\n")], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Friday Solved — Company List — " + new Date().toISOString().slice(0,10) + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+buildSicList();
+loadPreset("basingstoke");
+</script>
+</body>
+</html>
