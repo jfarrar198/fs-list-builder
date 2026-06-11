@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Friday Solved — Company List Builder</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, Arial, sans-serif; background: #f7f7f5; color: #111; min-height: 100vh; padding: 40px 20px; }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  .header { background: #FAD5E5; border-radius: 12px; padding: 32px 36px; margin-bottom: 28px; }
+  .header .logo { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+  .header h1 { font-size: 26px; font-weight: 700; line-height: 1.2; color: #111; margin-bottom: 8px; }
+  .header p { font-size: 14px; color: #444; line-height: 1.5; }
+  .card { background: #fff; border-radius: 12px; padding: 28px 32px; margin-bottom: 20px; border: 1px solid #e8e8e8; }
+  .card h2 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 16px; }
+  label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #111; }
+  input[type="password"] { width: 100%; padding: 12px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; font-family: 'Courier New', monospace; color: #111; background: #fafafa; transition: border-color 0.15s; margin-bottom: 8px; }
+  input:focus { outline: none; border-color: #FAD5E5; background: #fff; }
+  .hint { font-size: 12px; color: #888; line-height: 1.5; }
+  .hint a { color: #c0567a; text-decoration: none; }
+  .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .scope-item { background: #f7f7f5; border: 1.5px solid #e0e0e0; border-radius: 8px; padding: 10px 14px; font-size: 13px; }
+  .scope-item strong { display: block; font-weight: 700; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+  .btn { width: 100%; padding: 16px; background: #111; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.15s; margin-top: 4px; }
+  .btn:hover:not(:disabled) { background: #333; }
+  .btn:disabled { background: #bbb; cursor: not-allowed; }
+  .btn.pink { background: #FAD5E5; color: #111; margin-top: 12px; }
+  .btn.pink:hover:not(:disabled) { background: #f0bdd6; }
+  #progress-card { display: none; margin-top: 20px; }
+  .progress-bar-wrap { background: #f0f0f0; border-radius: 99px; height: 8px; margin: 14px 0 10px; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, #FAD5E5, #c0567a); border-radius: 99px; transition: width 0.4s ease; width: 0%; }
+  #log { background: #111; color: #aaffaa; border-radius: 8px; padding: 14px 16px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.7; max-height: 220px; overflow-y: auto; margin-top: 14px; }
+  #log .err { color: #ff8080; } #log .warn { color: #ffdd80; } #log .ok { color: #80ffaa; } #log .info { color: #80ccff; }
+  #status-text { font-size: 14px; font-weight: 600; color: #444; }
+  #count-text { font-size: 13px; color: #888; margin-top: 4px; }
+  .result-box { background: #f0faf4; border: 1.5px solid #a8e6c0; border-radius: 10px; padding: 20px 24px; margin-top: 16px; display: none; }
+  .result-box h3 { font-size: 16px; font-weight: 700; color: #1a6b3c; margin-bottom: 6px; }
+  .result-box p { font-size: 13px; color: #444; line-height: 1.5; }
+  .error-box { background: #fff5f5; border: 1.5px solid #ffaaaa; border-radius: 10px; padding: 16px 20px; margin-top: 16px; display: none; font-size: 13px; color: #aa2222; line-height: 1.5; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+  .stat-box { background: #fff; border: 1.5px solid #e8e8e8; border-radius: 8px; padding: 14px; text-align: center; }
+  .stat-box .num { font-size: 22px; font-weight: 700; color: #111; }
+  .stat-box .lbl { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">Friday Solved</div>
+    <h1>Basingstoke B2B<br>Company List Builder</h1>
+    <p>Pulls active B2B companies from Companies House across the Basingstoke 25-mile radius. Runs entirely in your browser.</p>
+  </div>
+
+  <div class="card">
+    <h2>Step 1 — Your API Key</h2>
+    <label for="apikey">Companies House API Key</label>
+    <input type="password" id="apikey" placeholder="e.g. 09c63992-8058-4619-affe-0237dda1f857" autocomplete="off" />
+    <p class="hint">Get a free key at <a href="https://developer.company-information.service.gov.uk/" target="_blank">developer.company-information.service.gov.uk</a> — register, create application, select REST, copy key.</p>
+  </div>
+
+  <div class="card">
+    <h2>Step 2 — Target Area</h2>
+    <div class="scope-grid">
+      <div class="scope-item"><strong>Centre</strong>Basingstoke (RG21–RG29)</div>
+      <div class="scope-item"><strong>East</strong>Fleet, Farnborough, Aldershot</div>
+      <div class="scope-item"><strong>North-East</strong>Woking, Guildford edge</div>
+      <div class="scope-item"><strong>South</strong>Winchester, Alresford</div>
+      <div class="scope-item"><strong>West</strong>Andover, Romsey</div>
+      <div class="scope-item"><strong>Filter</strong>Active B2B companies only</div>
+    </div>
+    <p class="hint">30 postcode areas. Consumer sectors automatically excluded.</p>
+  </div>
+
+  <button class="btn" id="run-btn" onclick="startFetch()">Build Company List →</button>
+
+  <div class="card" id="progress-card">
+    <h2>Running</h2>
+    <div id="status-text">Starting...</div>
+    <div id="count-text"></div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <div id="log"></div>
+    <div class="result-box" id="result-box"><h3>✓ List ready</h3><p id="result-text"></p></div>
+    <div class="error-box" id="error-box"></div>
+    <div class="stats-grid" id="stats-grid" style="display:none;">
+      <div class="stat-box"><div class="num" id="stat-total">0</div><div class="lbl">Companies</div></div>
+      <div class="stat-box"><div class="num" id="stat-sectors">0</div><div class="lbl">Sectors</div></div>
+      <div class="stat-box"><div class="num" id="stat-postcodes">0</div><div class="lbl">Postcodes</div></div>
+    </div>
+    <button class="btn pink" id="download-btn" style="display:none;" onclick="downloadCSV()">Download as CSV →</button>
+    <button class="btn pink" id="restart-btn" style="display:none;" onclick="restart()">Start again</button>
+  </div>
+</div>
+
+<script>
+const POSTCODES = [
+  "RG21","RG22","RG23","RG24","RG25","RG26","RG27","RG28","RG29",
+  "GU9","GU10","GU11","GU12","GU13","GU14","GU46","GU47","GU51","GU52",
+  "GU21","GU22","GU23","GU24",
+  "SO22","SO23","SO24","SO51","SP10","SP11"
+];
+
+const EXCLUDED_SIC = new Set(["47","45","56","55","93","90","91","96","97","98","99","01","02","03","05","06","07","08","09"]);
+
+const SIC_MAP = {
+  "10":"Food Manufacturing","11":"Beverage Manufacturing","13":"Textile Manufacturing",
+  "14":"Apparel Manufacturing","16":"Wood Products","17":"Paper Manufacturing",
+  "18":"Printing & Reproduction","20":"Chemical Manufacturing","21":"Pharmaceuticals",
+  "22":"Rubber & Plastics","23":"Non-metallic Minerals","24":"Basic Metal Manufacturing",
+  "25":"Fabricated Metal Products","26":"Electronics & Computer Hardware",
+  "27":"Electrical Equipment","28":"Machinery & Equipment","29":"Motor Vehicles",
+  "30":"Other Transport Equipment","31":"Furniture Manufacturing","32":"Other Manufacturing",
+  "33":"Repair & Maintenance","35":"Energy / Utilities","38":"Waste Management",
+  "41":"Construction of Buildings","42":"Civil Engineering","43":"Specialist Construction",
+  "46":"Wholesale Trade (B2B)","49":"Land Transport & Logistics",
+  "52":"Warehousing & Logistics","53":"Postal & Courier","58":"Publishing",
+  "59":"Film & TV Production","61":"Telecommunications","62":"IT / Software Development",
+  "63":"Information Services / Data","64":"Financial Services","65":"Insurance",
+  "66":"Financial Auxiliary Services","68":"Real Estate","69":"Legal & Accounting",
+  "70":"Management Consultancy","71":"Architecture & Engineering","72":"Scientific R&D",
+  "73":"Advertising & Market Research","74":"Other Professional Services",
+  "77":"Equipment Rental & Leasing","78":"Recruitment & Staffing",
+  "79":"Travel & Events","80":"Security Services","81":"Facilities Management",
+  "82":"Business Support Services","85":"Education & Training","86":"Healthcare",
+  "94":"Membership Organisations","95":"Computer & Equipment Repair"
+};
+
+// Proxy list — tried in order, falls back if one fails
+// Key is embedded in the URL itself (user:pass@host format) so no Authorization header needed
+// This gets around proxies that strip auth headers
+const PROXIES = [
+  url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://proxy.cors.sh/${url}`,
+];
+
+let workingProxyIndex = 0;
+
+function getSector(sic) {
+  if (!sic) return "Unknown";
+  return SIC_MAP[String(sic).substring(0,2)] || ("SIC " + sic);
+}
+
+function isB2B(sics) {
+  if (!sics || !sics.length) return true;
+  return sics.some(s => !EXCLUDED_SIC.has(String(s).substring(0,2)));
+}
+
+function log(msg, type) {
+  const el = document.getElementById("log");
+  const d = document.createElement("div");
+  if (type) d.className = type;
+  d.textContent = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStatus(msg) { document.getElementById("status-text").textContent = msg; }
+function setCount(n) { document.getElementById("count-text").textContent = n.toLocaleString() + " companies collected so far"; }
+function setProgress(pct) { document.getElementById("progress-bar").style.width = pct + "%"; }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+let allCompanies = {};
+
+// Build the target URL with the API key embedded directly (no Authorization header needed)
+function buildChUrl(apiKey, postcode, start) {
+  const base = `https://${apiKey}:@api.company-information.service.gov.uk`;
+  return `${base}/advanced-search/companies?location=${postcode}&company_status=active&start_index=${start}&size=100`;
+}
+
+async function fetchWithFallback(apiKey, postcode, start) {
+  const targetUrl = buildChUrl(apiKey, postcode, start);
+
+  // Try each proxy in order until one works
+  for (let i = workingProxyIndex; i < PROXIES.length; i++) {
+    try {
+      const proxyUrl = PROXIES[i](targetUrl);
+      const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(15000) });
+
+      if (resp.status === 401) throw new Error("Invalid API key — please check and try again.");
+      if (resp.status === 429) {
+        log("  Rate limited — waiting 15s...", "warn");
+        await sleep(15000);
+        return fetchWithFallback(apiKey, postcode, start);
+      }
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+      const text = await resp.text();
+      // allorigins wraps in JSON sometimes
+      let data;
+      try {
+        const outer = JSON.parse(text);
+        data = (outer.contents) ? JSON.parse(outer.contents) : outer;
+      } catch(e) {
+        throw new Error("Bad response from proxy");
+      }
+
+      workingProxyIndex = i; // Remember which proxy worked
+      return data;
+
+    } catch(err) {
+      if (err.message.includes("Invalid API key")) throw err;
+      if (i === PROXIES.length - 1) throw new Error("All proxies failed — " + err.message);
+      log(`  Proxy ${i+1} failed, trying next...`, "warn");
+    }
+  }
+}
+
+async function fetchPostcode(apiKey, postcode) {
+  let start = 0;
+  while (start < 500) {
+    const data = await fetchWithFallback(apiKey, postcode, start);
+    const items = data.items || [];
+    if (!items.length) break;
+
+    for (const c of items) {
+      const cn = c.company_number;
+      if (!cn || allCompanies[cn]) continue;
+      const sics = c.sic_codes || [];
+      if (!isB2B(sics)) continue;
+      const addr = c.registered_office_address || {};
+      const parts = [addr.address_line_1, addr.address_line_2, addr.locality, addr.region, addr.postal_code].filter(Boolean);
+      allCompanies[cn] = {
+        "Company Name": (c.company_name||"").replace(/\b\w/g, l => l.toUpperCase()),
+        "Company Number": cn,
+        "Status": (c.company_status||"").replace(/\b\w/g, l => l.toUpperCase()),
+        "Company Type": (c.company_type||"").replace(/-/g," ").replace(/\b\w/g, l => l.toUpperCase()),
+        "Incorporated": c.date_of_creation||"",
+        "Sector": getSector(sics[0]),
+        "SIC Code": sics.join(", "),
+        "Town": addr.locality||"",
+        "Postcode": addr.postal_code||"",
+        "Address": parts.join(", "),
+        "Companies House URL": "https://find-and-update.company-information.service.gov.uk/company/"+cn
+      };
+    }
+
+    const total = data.hits || 0;
+    start += items.length;
+    if (start >= total || start >= 500) break;
+    await sleep(250);
+  }
+}
+
+async function startFetch() {
+  const apiKey = document.getElementById("apikey").value.trim();
+  if (!apiKey) { alert("Please enter your API key first."); return; }
+
+  allCompanies = {};
+  workingProxyIndex = 0;
+  document.getElementById("run-btn").disabled = true;
+  document.getElementById("progress-card").style.display = "block";
+  document.getElementById("result-box").style.display = "none";
+  document.getElementById("error-box").style.display = "none";
+  document.getElementById("download-btn").style.display = "none";
+  document.getElementById("restart-btn").style.display = "none";
+  document.getElementById("stats-grid").style.display = "none";
+  document.getElementById("log").innerHTML = "";
+
+  log("Starting Companies House pull...", "info");
+  log("Target: " + POSTCODES.length + " postcode areas", "info");
+  log("Testing connection...", "info");
+
+  try {
+    for (let i = 0; i < POSTCODES.length; i++) {
+      const pc = POSTCODES[i];
+      setStatus("Fetching " + pc + "... (" + (i+1) + " of " + POSTCODES.length + ")");
+      setProgress(Math.round((i / POSTCODES.length) * 100));
+
+      const before = Object.keys(allCompanies).length;
+      await fetchPostcode(apiKey, pc);
+      const added = Object.keys(allCompanies).length - before;
+
+      log(pc + " → +" + added + " (total: " + Object.keys(allCompanies).length.toLocaleString() + ")", added > 0 ? "ok" : "");
+      setCount(Object.keys(allCompanies).length);
+    }
+
+    setProgress(100);
+    const companies = Object.values(allCompanies);
+    const sectors = new Set(companies.map(c => c.Sector)).size;
+    const postcodes = new Set(companies.map(c => (c.Postcode||"").substring(0,4).trim())).size;
+
+    setStatus("Done.");
+    document.getElementById("stat-total").textContent = companies.length.toLocaleString();
+    document.getElementById("stat-sectors").textContent = sectors;
+    document.getElementById("stat-postcodes").textContent = postcodes;
+    document.getElementById("stats-grid").style.display = "grid";
+    document.getElementById("result-text").textContent = companies.length.toLocaleString() + " active B2B companies found. Click below to download your CSV — open in Excel or Google Sheets.";
+    document.getElementById("result-box").style.display = "block";
+    document.getElementById("download-btn").style.display = "block";
+    document.getElementById("restart-btn").style.display = "block";
+    log("✓ Complete — " + companies.length.toLocaleString() + " companies", "ok");
+
+  } catch(err) {
+    document.getElementById("error-box").textContent = "Error: " + err.message + ". Try refreshing and running again — if it keeps failing, screenshot this and send to Friday Solved.";
+    document.getElementById("error-box").style.display = "block";
+    document.getElementById("restart-btn").style.display = "block";
+    log("✗ " + err.message, "err");
+    setStatus("Something went wrong.");
+  }
+}
+
+function downloadCSV() {
+  const companies = Object.values(allCompanies);
+  if (!companies.length) return;
+  const cols = ["Company Name","Company Number","Status","Company Type","Incorporated","Sector","SIC Code","Town","Postcode","Address","Companies House URL"];
+  const esc = v => '"' + String(v||"").replace(/"/g,'""') + '"';
+  const rows = [cols.map(esc).join(","), ...companies.map(c => cols.map(col => esc(c[col])).join(","))];
+  const blob = new Blob([rows.join("\n")], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "Friday Solved — Basingstoke B2B Company List — " + new Date().toISOString().slice(0,10) + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function restart() {
+  document.getElementById("run-btn").disabled = false;
+  document.getElementById("progress-card").style.display = "none";
+  allCompanies = {};
+}
+</script>
+</body>
+</html>
